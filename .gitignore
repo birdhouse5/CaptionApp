@@ -1,2 +1,3 @@
 dist/
 caption_tool/venv/
+.env
