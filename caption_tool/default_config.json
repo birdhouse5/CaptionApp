@@ -1,0 +1,42 @@
+{
+  "video": {
+    "max_width_pixels": 800,
+    "rotation_degrees": 0,
+    "target_margin_percent": 10.0,
+    "supported_input_formats": [".mp4", ".mov", ".avi", ".mkv"],
+    "output_format": ".mp4"
+  },
+  "fonts": {
+    "path": null,
+    "size_scale": 0.045
+  },
+  "colors": {
+    "text": [255, 255, 255],
+    "highlight": [255, 255, 0],
+    "background": null,
+    "highlight_background": [0, 255, 0]
+  },
+  "positioning": {
+    "horizontal": 0.5,
+    "vertical": 0.8
+  },
+  "highlighting": {
+    "mode": "text",
+    "text_enabled": true,
+    "background_enabled": false,
+    "current_word_only": false
+  },
+  "segments": {
+    "max_duration_seconds": 1.5,
+    "max_characters": 100,
+    "word_spacing": 10,
+    "blur_radius": 5
+  },
+  "transcription": {
+    "model": "base"
+  },
+  "processing": {
+    "cleanup_temp_files": true,
+    "ffmpeg_timeout": 300
+  }
+}

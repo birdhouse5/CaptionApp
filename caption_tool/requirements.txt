@@ -1,0 +1,17 @@
+# Core dependencies
+openai-whisper>=20231117
+opencv-python>=4.8.0
+Pillow>=10.0.0
+moviepy>=1.0.3
+numpy>=1.24.0
+
+# Progress bars and CLI
+tqdm>=4.65.0
+
+# Optional: CUDA support for faster processing
+# torch>=2.0.0+cu118  # Uncomment for CUDA support
+
+# Development dependencies (optional)
+# pytest>=7.0.0
+# black>=23.0.0
+# flake8>=6.0.0

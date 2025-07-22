@@ -1,0 +1,3 @@
+- repair caption app
+- set up google drive connection
+- build the pipeline
