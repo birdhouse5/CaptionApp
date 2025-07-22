@@ -62,8 +62,9 @@ class CaptionProcessor:
         
         # Renderer will also be initialized in process_video with actual config
     
+
     def process_video(self, input_path: str, output_path: str, 
-                     progress_callback: Optional[Callable[[str, float, str], None]] = None) -> bool:
+                    progress_callback: Optional[Callable[[str, float, str], None]] = None) -> bool:
         """
         Process video with captions.
         
@@ -131,7 +132,10 @@ class CaptionProcessor:
             
             # Process with temporary file management
             with TempFileManager(cleanup=self.config.get('processing.cleanup_temp_files', True)) as temp_manager:
-                return self.config.to_dict()
+                # THIS WAS THE BUG - it returned config instead of processing!
+                # OLD BROKEN LINE: return self.config.to_dict()
+                # FIXED LINE:
+                return self._process_pipeline(input_path, output_path, temp_manager)
 
         except Exception as e:
             if isinstance(e, CaptionToolError):
