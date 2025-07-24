@@ -1,3 +1,4 @@
 venv/
 .env
 caption_tool/test.mp4
+caption_tool/data/
