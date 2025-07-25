@@ -1,4 +1,5 @@
 venv/
 .env
 caption_tool/data/
+caption_tool/fonts/
 untrack/
