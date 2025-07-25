@@ -6,8 +6,9 @@ Caption Tool - Fixed version with correct imports
 import sys
 import os
 
-# FIXED: Add the caption_tool directory to Python path
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'caption_tool'))
+# FIXED: Ensure we're importing from the current directory
+current_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, current_dir)
 
 import argparse
 import json
@@ -15,12 +16,19 @@ from pathlib import Path
 from typing import List, Optional
 
 # Import the working components directly
-from core.transcriber import Transcriber
-from core.segmenter import Segmenter
-from core.renderer import CaptionRenderer
-from utils import TempFileManager, get_video_info, ensure_output_directory, validate_input_video
-from exceptions import CaptionToolError
-from config import Config
+try:
+    from core.transcriber import Transcriber
+    from core.segmenter import Segmenter
+    from core.renderer import CaptionRenderer
+    from utils import TempFileManager, get_video_info, ensure_output_directory, validate_input_video
+    from exceptions import CaptionToolError
+    from config import Config
+except ImportError as e:
+    print(f"Import error: {e}")
+    print(f"Current working directory: {os.getcwd()}")
+    print(f"Python path: {sys.path}")
+    print("Please ensure you're running this script from the caption_tool directory")
+    sys.exit(1)
 
 
 def parse_color(color_str: str) -> List[int]:
@@ -343,7 +351,7 @@ def main():
         
         print("🚀 Caption Tool - Fixed Version")
         print(f"📁 Working directory: {os.getcwd()}")
-        print(f"📂 Python path includes: {sys.path[0]}")
+        print(f"📂 Script directory: {os.path.dirname(os.path.abspath(__file__))}")
         
         # Process based on mode
         if args.transcript_only:

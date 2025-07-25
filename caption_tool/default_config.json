@@ -7,14 +7,20 @@
     "output_format": ".mp4"
   },
   "fonts": {
-    "path": null,
-    "size_scale": 0.045
+    "path": "fonts/Montserrat.ttf",
+    "size_scale": 0.045,
+    "fallback_fonts": [
+      "fonts/roboto.ttf",
+      "fonts/opensans.ttf", 
+      "fonts/inter.ttf",
+      "fonts/arial.ttf"
+    ]
   },
   "colors": {
     "text": [255, 255, 255],
-    "highlight": [255, 255, 0],
-    "background": null,
-    "highlight_background": [0, 255, 0]
+    "highlight": null,
+    "background": [0, 0, 0],
+    "highlight_background": [255, 192, 203]
   },
   "positioning": {
     "horizontal": 0.5,

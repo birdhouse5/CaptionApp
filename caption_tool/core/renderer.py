@@ -7,6 +7,7 @@ import numpy as np
 import subprocess
 import tempfile
 import os
+from pathlib import Path
 from typing import List, Dict, Any, Optional, Tuple
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
@@ -62,14 +63,148 @@ class CaptionRenderer:
         self.show_current_word_only = highlighting_mode == "current_word_only"
     
     def _load_font(self, font_size: int) -> ImageFont.ImageFont:
-        """Load font for rendering."""
+        """Load font for rendering with project fonts support."""
         try:
-            if self.font_path and os.path.exists(self.font_path):
-                return ImageFont.truetype(self.font_path, font_size)
+            # Get the project root directory (where main.py is located)
+            if hasattr(self, '_project_root'):
+                project_root = self._project_root
             else:
-                return ImageFont.load_default()
+                # Try to find project root automatically
+                current_file = Path(__file__).resolve()
+                project_root = current_file.parent.parent  # Go up from core/ to caption_tool/
+                
+                # Alternative: look for main.py
+                for parent in current_file.parents:
+                    if (parent / 'main.py').exists():
+                        project_root = parent
+                        break
+            
+            fonts_dir = project_root / 'fonts'
+            
+            # 1. Try the specified font path first (if absolute or relative to project)
+            if self.font_path:
+                font_path = Path(self.font_path)
+                
+                # If it's not absolute, try relative to project root
+                if not font_path.is_absolute():
+                    font_path = project_root / self.font_path
+                
+                if font_path.exists():
+                    font = ImageFont.truetype(str(font_path), font_size)
+                    self._log_font_use(f"Using specified font: {font_path} at {font_size}px")
+                    return font
+            
+            # 2. Try project fonts directory
+            if fonts_dir.exists():
+                # Priority order for project fonts
+                project_fonts = [
+                    'roboto.ttf',
+                    'roboto-regular.ttf', 
+                    'Roboto-Regular.ttf',
+                    'opensans.ttf',
+                    'opensans-regular.ttf',
+                    'OpenSans-Regular.ttf', 
+                    'inter.ttf',
+                    'inter-regular.ttf',
+                    'Inter-Regular.ttf',
+                    'arial.ttf',
+                    'Arial.ttf'
+                ]
+                
+                for font_name in project_fonts:
+                    font_path = fonts_dir / font_name
+                    if font_path.exists():
+                        try:
+                            font = ImageFont.truetype(str(font_path), font_size)
+                            self._log_font_use(f"Using project font: {font_name} at {font_size}px")
+                            return font
+                        except Exception as e:
+                            self._log_font_use(f"Failed to load {font_name}: {e}")
+                            continue
+            
+            # 3. Try system fonts as fallback
+            system_fonts = self._get_system_fonts()
+            
+            for font_path in system_fonts:
+                if os.path.exists(font_path):
+                    try:
+                        font = ImageFont.truetype(font_path, font_size)
+                        self._log_font_use(f"Using system font: {font_path} at {font_size}px")
+                        return font
+                    except Exception:
+                        continue
+            
+            # 4. Try font names without full paths (let system find them)
+            font_names = [
+                "arial.ttf", "Arial.ttf",
+                "calibri.ttf", "Calibri.ttf", 
+                "roboto.ttf", "Roboto.ttf",
+                "opensans.ttf", "OpenSans.ttf"
+            ]
+            
+            for font_name in font_names:
+                try:
+                    font = ImageFont.truetype(font_name, font_size)
+                    self._log_font_use(f"Using system font by name: {font_name} at {font_size}px")
+                    return font
+                except Exception:
+                    continue
+            
+            # 5. Last resort: default font with warning
+            self._log_font_use("WARNING: Using PIL default font - text may be tiny!")
+            self._log_font_use("Consider downloading fonts to the 'fonts/' directory")
+            self._log_font_use("Recommended: Download Roboto from https://fonts.google.com/specimen/Roboto")
+            
+            return ImageFont.load_default()
+            
         except Exception as e:
             raise FontError(f"Failed to load font: {e}")
+
+    def _get_system_fonts(self):
+        """Get list of common system font paths."""
+        system_fonts = []
+        
+        # Windows fonts
+        windows_fonts_dir = Path("C:/Windows/Fonts")
+        if windows_fonts_dir.exists():
+            system_fonts.extend([
+                str(windows_fonts_dir / "arial.ttf"),
+                str(windows_fonts_dir / "Arial.ttf"),
+                str(windows_fonts_dir / "calibri.ttf"), 
+                str(windows_fonts_dir / "Calibri.ttf"),
+                str(windows_fonts_dir / "tahoma.ttf"),
+                str(windows_fonts_dir / "Tahoma.ttf"),
+            ])
+        
+        # Linux fonts
+        linux_font_paths = [
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+            "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+            "/usr/share/fonts/TTF/DejaVuSans.ttf",
+            "/usr/share/fonts/truetype/roboto/Roboto-Regular.ttf",
+        ]
+        system_fonts.extend(linux_font_paths)
+        
+        # macOS fonts
+        macos_font_paths = [
+            "/System/Library/Fonts/Arial.ttf",
+            "/System/Library/Fonts/Helvetica.ttc",
+            "/Library/Fonts/Arial.ttf",
+        ]
+        system_fonts.extend(macos_font_paths)
+        
+        return system_fonts
+
+    def _log_font_use(self, message: str):
+        """Log font usage information (only once)."""
+        # Only log font selection once, not for every frame
+        if not hasattr(self, '_font_logged'):
+            self._font_logged = False
+
+        if not self._font_logged:
+            if hasattr(self, 'progress_tracker') and self.progress_tracker:
+                self.progress_tracker.log(message)
+            self._font_logged = True
     
     def _draw_rounded_rectangle(self, draw: ImageDraw.ImageDraw, coords: Tuple[int, int, int, int], 
                                radius: int, color: Tuple[int, int, int, int]) -> None:
